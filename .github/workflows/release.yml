@@ -29,7 +29,9 @@ concurrency:
 jobs:
   release-proposal:
     name: Update release proposal
-    if: github.event_name == 'push'
+    # Only the upstream project may create release proposals.
+    # Fork pushes should not invoke Release Please or request publish access.
+    if: github.event_name == 'push' && github.repository == 'morluto/rea'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -58,6 +60,7 @@ jobs:
   merged-release:
     name: Release reviewed main merge
     if: >-
+      github.repository == 'morluto/rea' &&
       github.event_name == 'pull_request' && github.event.pull_request.merged == true &&
       github.event.pull_request.head.repo.full_name == github.repository &&
       startsWith(github.event.pull_request.head.ref, 'release-please--branches--main--')
@@ -129,7 +132,8 @@ jobs:
 
   release-please:
     name: Release Please
-    if: github.event_name == 'workflow_dispatch'
+    # Release dispatches are reserved for the canonical publishing repository.
+    if: github.event_name == 'workflow_dispatch' && github.repository == 'morluto/rea'
     runs-on: ubuntu-latest
     permissions:
       contents: write
